@@ -1,0 +1,167 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "start-minikube",
+			"type": "shell",
+			"command": "minikube",
+			"args": [
+				"start"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stop-one-pod",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$pod = kubectl get pods -A --field-selector=status.phase=Running -o jsonpath='{range .items[*]}{.metadata.namespace}{\"|\"}{.metadata.name}{\"`n\"}{end}' | Select-Object -First 1; if (-not $pod) { Write-Output 'NO_RUNNING_PODS'; exit 0 }; $parts = $pod -split '\\|'; $ns = $parts[0]; $name = $parts[1]; Write-Output \"Deleting pod: ${ns}/${name}\"; kubectl delete pod $name -n $ns; Write-Output \"`nCurrent pods in ${ns}:\"; kubectl get pods -n $ns"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stop-one-pod-simple",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$line = kubectl get pods -A --field-selector=status.phase=Running --no-headers | Select-Object -First 1; if (-not $line) { Write-Output 'NO_RUNNING_PODS'; exit 0 }; $parts = ($line -replace '^\\s+','') -split '\\s+'; $ns = $parts[0]; $name = $parts[1]; Write-Output \"Deleting pod: ${ns}/${name}\"; kubectl delete pod $name -n $ns; Write-Output \"`nCurrent pods in ${ns}:\"; kubectl get pods -n $ns"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "stop-one-pod-no-singlequotes",
+			"type": "shell",
+			"command": "powershell",
+			"args": [
+				"-NoProfile",
+				"-Command",
+				"$line = kubectl get pods -A --field-selector=status.phase=Running --no-headers | Select-Object -First 1; if (-not $line) { Write-Output \"NO_RUNNING_PODS\"; exit 0 }; $parts = $line -split \"\\s+\"; $ns = $parts[0]; $name = $parts[1]; Write-Output \"Deleting pod: ${ns}/${name}\"; kubectl delete pod $name -n $ns; Write-Output \"`nCurrent pods in ${ns}:\"; kubectl get pods -n $ns"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "list-running-pods",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"get",
+				"pods",
+				"-A"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "delete-one-pod",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"delete",
+				"pod",
+				"frontend-759775d795-wvcqg",
+				"-n",
+				"default"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-frontend-pod",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"get",
+				"pods",
+				"-n",
+				"default",
+				"-l",
+				"app=frontend"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "disable-self-heal-frontend",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"scale",
+				"deployment/frontend",
+				"-n",
+				"default",
+				"--replicas=0"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-frontend-stopped",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"get",
+				"pods",
+				"-n",
+				"default",
+				"-l",
+				"app=frontend"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "check-payment-status",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"get",
+				"pods,deploy",
+				"-n",
+				"default",
+				"-o",
+				"wide"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "start-payment-pod",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"scale",
+				"deployment/paymentservice",
+				"-n",
+				"default",
+				"--replicas=1"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "verify-payment-pod",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"get",
+				"pods",
+				"-n",
+				"default",
+				"-l",
+				"app=paymentservice"
+			],
+			"isBackground": false
+		},
+		{
+			"label": "payment-rollout-status",
+			"type": "shell",
+			"command": "kubectl",
+			"args": [
+				"rollout",
+				"status",
+				"deployment/paymentservice",
+				"-n",
+				"default",
+				"--timeout=90s"
+			],
+			"isBackground": false
+		}
+	]
+}

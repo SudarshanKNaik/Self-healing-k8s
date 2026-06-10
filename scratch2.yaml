@@ -1,0 +1,105 @@
+apiVersion: v1
+data:
+  relay: |
+    exporters:
+      debug: {}
+    extensions:
+      health_check:
+        endpoint: 0.0.0.0:13133
+    processors:
+      batch: {}
+      memory_limiter:
+        check_interval: 5s
+        limit_percentage: 80
+        spike_limit_percentage: 25
+    receivers:
+      jaeger:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:14250
+          thrift_compact:
+            endpoint: 0.0.0.0:6831
+          thrift_http:
+            endpoint: 0.0.0.0:14268
+      otlp:
+        protocols:
+          grpc:
+            endpoint: 0.0.0.0:4317
+          http:
+            endpoint: 0.0.0.0:4318
+      prometheus:
+        config:
+          scrape_configs:
+          - job_name: opentelemetry-collector
+            scrape_interval: 10s
+            static_configs:
+            - targets:
+              - ${env:MY_POD_IP}:8888
+      zipkin:
+        endpoint: 0.0.0.0:9411
+    service:
+      extensions:
+      - health_check
+      pipelines:
+        logs:
+          exporters:
+          - debug
+          processors:
+          - memory_limiter
+          - batch
+          receivers:
+          - otlp
+        metrics:
+          exporters:
+          - debug
+          processors:
+          - memory_limiter
+          - batch
+          receivers:
+          - otlp
+          - prometheus
+        traces:
+          exporters:
+          - debug
+          processors:
+          - memory_limiter
+          - batch
+          receivers:
+          - otlp
+          - jaeger
+          - zipkin
+      telemetry:
+        metrics:
+          readers:
+          - pull:
+              exporter:
+                prometheus:
+                  host: ${env:MY_POD_IP}
+                  port: 8888
+        resource:
+          host.name: ${env:OTEL_K8S_NODE_NAME}
+          k8s.namespace.name: ${env:OTEL_K8S_NAMESPACE}
+          k8s.node.ip: ${env:OTEL_K8S_NODE_IP}
+          k8s.node.name: ${env:OTEL_K8S_NODE_NAME}
+          k8s.pod.ip: ${env:OTEL_K8S_POD_IP}
+          k8s.pod.name: ${env:OTEL_K8S_POD_NAME}
+kind: ConfigMap
+metadata:
+  annotations:
+    kubectl.kubernetes.io/last-applied-configuration: |
+      {"apiVersion":"v1","data":{"relay":"exporters:\n  debug: {}\nextensions:\n  health_check:\n    endpoint: 0.0.0.0:13133\nprocessors:\n  batch: {}\n  memory_limiter:\n    check_interval: 5s\n    limit_percentage: 80\n    spike_limit_percentage: 25\nreceivers:\n  jaeger:\n    protocols:\n      grpc:\n        endpoint: 0.0.0.0:14250\n      thrift_compact:\n        endpoint: 0.0.0.0:6831\n      thrift_http:\n        endpoint: 0.0.0.0:14268\n  otlp:\n    protocols:\n      grpc:\n        endpoint: 0.0.0.0:4317\n      http:\n        endpoint: 0.0.0.0:4318\n  prometheus:\n    config:\n      scrape_configs:\n      - job_name: opentelemetry-collector\n        scrape_interval: 10s\n        static_configs:\n        - targets:\n          - ${env:MY_POD_IP}:8888\n  zipkin:\n    endpoint: 0.0.0.0:9411\nservice:\n  extensions:\n  - health_check\n  pipelines:\n    logs:\n      exporters:\n      - debug\n      processors:\n      - memory_limiter\n      - batch\n      receivers:\n      - otlp\n    metrics:\n      exporters:\n      - debug\n      processors:\n      - memory_limiter\n      - batch\n      receivers:\n      - otlp\n      - prometheus\n    traces:\n      exporters:\n      - debug\n      processors:\n      - memory_limiter\n      - batch\n      receivers:\n      - otlp\n      - jaeger\n      - zipkin\n  telemetry:\n    metrics:\n      readers:\n      - pull:\n          exporter:\n            prometheus:\n              host: ${env:MY_POD_IP}\n              port: 8888\n    resource:\n      host.name: ${env:OTEL_K8S_NODE_NAME}\n      k8s.namespace.name: ${env:OTEL_K8S_NAMESPACE}\n      k8s.node.ip: ${env:OTEL_K8S_NODE_IP}\n      k8s.node.name: ${env:OTEL_K8S_NODE_NAME}\n      k8s.pod.ip: ${env:OTEL_K8S_POD_IP}\n      k8s.pod.name: ${env:OTEL_K8S_POD_NAME}\n"},"kind":"ConfigMap","metadata":{"annotations":{"meta.helm.sh/release-name":"otel-collector","meta.helm.sh/release-namespace":"default"},"creationTimestamp":"2026-04-09T17:21:14Z","labels":{"app.kubernetes.io/component":"standalone-collector","app.kubernetes.io/instance":"otel-collector","app.kubernetes.io/managed-by":"Helm","app.kubernetes.io/name":"opentelemetry-collector","app.kubernetes.io/part-of":"opentelemetry-collector","app.kubernetes.io/version":"0.148.0","helm.sh/chart":"opentelemetry-collector-0.148.0"},"name":"otel-collector-opentelemetry-collector","namespace":"default","resourceVersion":"4422","uid":"5517c1a0-aec5-4950-abdc-de380e7115cb"}}
+    meta.helm.sh/release-name: otel-collector
+    meta.helm.sh/release-namespace: default
+  creationTimestamp: "2026-04-09T17:21:14Z"
+  labels:
+    app.kubernetes.io/component: standalone-collector
+    app.kubernetes.io/instance: otel-collector
+    app.kubernetes.io/managed-by: Helm
+    app.kubernetes.io/name: opentelemetry-collector
+    app.kubernetes.io/part-of: opentelemetry-collector
+    app.kubernetes.io/version: 0.148.0
+    helm.sh/chart: opentelemetry-collector-0.148.0
+  name: otel-collector-opentelemetry-collector
+  namespace: default
+  resourceVersion: "4665"
+  uid: 5517c1a0-aec5-4950-abdc-de380e7115cb

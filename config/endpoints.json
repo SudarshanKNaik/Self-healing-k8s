@@ -1,0 +1,4 @@
+{
+    "frontend_url":  "http://192.168.49.2:32187",
+    "otel_endpoint":  "http://localhost:4318/v1/traces"
+}
